@@ -44,10 +44,9 @@ func (this *WebsocketController) Get() {
 	for {
 		mt, message, err := ws.ReadMessage()
 		if err != nil {
-			beego.Info("read:", err)
+			beego.Info("read ip" + ip +":", err)
 			break
 		}
-		beego.Info(string(message))
 		messStruct   := &models.MessageStruct{}
 		if err := json.Unmarshal(message, messStruct); err == nil {
 			//beego.Info(messStruct)
@@ -65,18 +64,17 @@ func (this *WebsocketController) Get() {
 				}
 			case "sendMessage":
 				// 将message 发送到各个链接
-				for ws,token := range user {
+				for nowws,token := range user {
 					if token == messStruct.Data.Token {
 						continue
 					}
-					beego.Info(token)
 					messStruct.Action = "replyMessage"
 					messStruct.Data.Token = messStruct.Token
 					messStruct.Data.Message = messStruct.Message
 					if 	returnData, err := json.Marshal(messStruct) ; err == nil {
-						err = ws.WriteMessage(mt, returnData)
+						err = nowws.WriteMessage(mt, returnData)
 						if err != nil {
-							beego.Info("write:", err)
+							beego.Info("send " + token + ": error", err)
 							break
 						}
 					}
