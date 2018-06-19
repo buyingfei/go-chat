@@ -56,6 +56,7 @@ export default {
       }
 
       wenzi_message_websocket.onmessage = (evt) => {
+        console.log(evt.data)
         var res = JSON.parse(evt.data)
         if (res.action === 'open') {
           // 没有token ，设置token
@@ -63,12 +64,6 @@ export default {
             this.token = res.data.token
             this.$store.dispatch('modifyToken', res.data.token)
           }
-          // 重发open，保存会还
-          var data = {
-            action: 'open'
-          }
-
-          this.sendWebSocketData(data)
         }
         if (res.action === 'close') {
           alert(res.data.message)

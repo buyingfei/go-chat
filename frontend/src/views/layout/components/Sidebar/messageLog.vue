@@ -1,7 +1,7 @@
 <template>
   <div class="menu-wrapper">
-    <el-row v-for="item in list" :key="item.token">
-      <el-col :span="10" class="user">{{ item.token }}：</el-col>
+    <el-row v-for="item in list" :key="item.id">
+      <el-col :span="7" class="user">{{ item.token }}：</el-col>
       <el-col :span="14" style="color: #E6A23C">{{ item.message }}</el-col>
     </el-row>
   </div>
@@ -27,6 +27,8 @@ export default {
   methods: {
     registerEvent() {
       EventBus.$on('add-message', (data) => {
+        data.id = Math.floor(Math.random() * 10000)
+        console.log(data)
         this.list.push(data)
       })
     },
