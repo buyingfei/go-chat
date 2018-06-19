@@ -14,13 +14,5 @@ import (
 )
 
 func init() {
-	//ns := beego.NewNamespace("/chat",
-	//	beego.NSNamespace("/write",
-	//		beego.NSInclude(
-	//			&controllers.WebsockController{},
-	//		),
-	//	),
-	//)
-	//beego.AddNamespace(ns)
-	beego.Router("/websock", &controllers.WebsockController{})
+	beego.Router("/pushwenziwebsocket", &controllers.WebsocketController{})
 }

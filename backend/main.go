@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "go-chat/backend/routers"
-
 	"github.com/astaxie/beego"
 )
 
