@@ -61,7 +61,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
   ]
 })
 
-var uri = 'http://live.2345.com'
+var uri = 'http://chat.2345.com'
 module.exports = new Promise((resolve, reject) => {
   portfinder.basePort = process.env.PORT || config.dev.port
   portfinder.getPort((err, port) => {

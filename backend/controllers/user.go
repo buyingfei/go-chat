@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"goChat/backend/models"
+	"go-chat/backend/models"
 	"encoding/json"
 
 	"github.com/astaxie/beego"
