@@ -12,14 +12,15 @@ type WebsocketController struct {
 }
 
 var upgrader = websocket.Upgrader{
+	// 允许跨域
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 } // use default options
 
 // Join method handles WebSocket requests for WebSocketController.
 func (this *WebsocketController) Get() {
-	// 允许跨域
-	upgrader.CheckOrigin = func(r *http.Request) bool {
-		return true
-	}
+
 	// // 建立socket 链接
 	ws, err := upgrader.Upgrade(this.Ctx.ResponseWriter, this.Ctx.Request, nil)
 	if err != nil {
