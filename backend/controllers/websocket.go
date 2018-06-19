@@ -41,16 +41,16 @@ func (this *WebsocketController) Get() {
 	ip=ip[0:strings.LastIndex(ip, ":")]
 
 	user[ws] = ip
-
 	for {
 		mt, message, err := ws.ReadMessage()
 		if err != nil {
 			beego.Info("read:", err)
 			break
 		}
-		var messStruct   models.MessageStruct
-		if err := json.Unmarshal(message, &messStruct); err == nil {
-			beego.Info(messStruct.Action)
+		beego.Info(string(message))
+		messStruct   := &models.MessageStruct{}
+		if err := json.Unmarshal(message, messStruct); err == nil {
+			//beego.Info(messStruct)
 			switch messStruct.Action {
 			case "open":
 				// 发送数据给前端,将ip 作为token
@@ -58,17 +58,21 @@ func (this *WebsocketController) Get() {
 				if 	returnData, err := json.Marshal(messStruct) ; err == nil {
 					err = ws.WriteMessage(mt, returnData)
 					if err != nil {
-						beego.Info("write:", err)
+						beego.Error("write:", err)
 						break
 					}
+					beego.Info("建立链接：" + "ip" + ip)
 				}
 			case "sendMessage":
 				// 将message 发送到各个链接
-				for ws,_ := range user {
-					//if token == messStruct.Data.Token {
-					//	continue
-					//}
+				for ws,token := range user {
+					if token == messStruct.Data.Token {
+						continue
+					}
+					beego.Info(token)
 					messStruct.Action = "replyMessage"
+					messStruct.Data.Token = messStruct.Token
+					messStruct.Data.Message = messStruct.Message
 					if 	returnData, err := json.Marshal(messStruct) ; err == nil {
 						err = ws.WriteMessage(mt, returnData)
 						if err != nil {
@@ -78,6 +82,7 @@ func (this *WebsocketController) Get() {
 					}
 				}
 			case "close":
+				beego.Info("关闭链接:", user[ws])
 				// 删除链接
 				delete(user, ws)
 			}
