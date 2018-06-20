@@ -46,6 +46,7 @@ func (this *WebsocketController) Get() {
 	}
 	defer ws.Close()
 
+	// 关闭链接处理
 	ws.SetCloseHandler(func(code int, text string) error {
 		deleteClinet(ws)
 		return nil
@@ -54,18 +55,23 @@ func (this *WebsocketController) Get() {
 	token := models.GetRandomString(8)
 	userLock.Lock()
 	defer userLock.Unlock()
-
 	user[ws] = token
+
 	for {
+		// 读消息
 		mt, message, err := ws.ReadMessage()
 		if err != nil {
+			// 读失败关闭链接，删除map对象
 			beego.Info("read " + token +" error:", err)
-			ws.Close()
 			deleteClinet(ws)
+			ws.Close()
 			break
 		}
+
 		receiveMessage   := &models.ReceiveMessage{}
 		sendMessage   := &models.SendMessage{}
+
+		// 解析读
 		if err := json.Unmarshal(message, receiveMessage); err == nil {
 			switch receiveMessage.Action {
 			case "open":
@@ -82,6 +88,7 @@ func (this *WebsocketController) Get() {
 						beego.Info("建立链接：" + token," data:",sendMessage)
 					}
 				}
+
 			case "sendMessage":
 				// 将message 发送到各个链接
 				for nowws,token := range user {
@@ -104,6 +111,7 @@ func (this *WebsocketController) Get() {
 						}
 					}
 				}
+
 			case "close":
 				deleteClinet(ws)
 			}
