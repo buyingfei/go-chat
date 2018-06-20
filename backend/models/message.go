@@ -1,12 +1,16 @@
 package models
 
-type MessageStruct struct {
+// 接受消息结构
+type ReceiveMessage struct {
 	Action   string    `json:"action"`
-	// send
-	Data MessageDetail `json:"data"`
-	// receive
 	Token    string    `json:"token"`
 	Message    string    `json:"message"`
+}
+
+// 发送消息结构
+type SendMessage struct {
+	Action   string    `json:"action"`
+	Data MessageDetail `json:"data"`
 }
 
 type MessageDetail struct {

@@ -34,6 +34,7 @@ func deleteClinet(ws *websocket.Conn) {
 	}
 }
 
+
 // Join method handles WebSocket requests for WebSocketController.
 func (this *WebsocketController) Get() {
 
@@ -55,44 +56,52 @@ func (this *WebsocketController) Get() {
 	// 获取ip
 	ip:=this.Ctx.Request.RemoteAddr
 	ip=ip[0:strings.LastIndex(ip, ":")]
-
-	user[ws] = ip
+	token := "ip" + ip
+	user[ws] = token
 	for {
 		mt, message, err := ws.ReadMessage()
 		if err != nil {
-			beego.Info("read ip" + ip +" error:", err)
+			beego.Info("read " + token +" error:", err)
 			ws.Close()
 			deleteClinet(ws)
 			break
 		}
-		messStruct   := &models.MessageStruct{}
-		if err := json.Unmarshal(message, messStruct); err == nil {
-			switch messStruct.Action {
+		receiveMessage   := &models.ReceiveMessage{}
+		sendMessage   := &models.SendMessage{}
+		if err := json.Unmarshal(message, receiveMessage); err == nil {
+			switch receiveMessage.Action {
 			case "open":
-				// 发送数据给前端,将ip 作为token
-				messStruct.Data.Token = "ip" + ip
-				if 	returnData, err := json.Marshal(messStruct) ; err == nil {
+				// 需要返回数据
+				sendMessage.Data.Token = token
+				sendMessage.Action = receiveMessage.Action
+				// 返回数据json 为二进制
+				if 	returnData, err := json.Marshal(sendMessage) ; err == nil {
 					err = ws.WriteMessage(mt, returnData)
 					if err != nil {
 						beego.Error("write:", err)
 						break
 					}
-					beego.Info("建立链接：" + "ip" + ip)
+					beego.Info("建立链接：" + token)
 				}
 			case "sendMessage":
 				// 将message 发送到各个链接
 				for nowws,token := range user {
-					if token == messStruct.Data.Token {
+					if token == receiveMessage.Token {
 						continue
 					}
-					messStruct.Action = "replyMessage"
-					messStruct.Data.Token = messStruct.Token
-					messStruct.Data.Message = messStruct.Message
-					if 	returnData, err := json.Marshal(messStruct) ; err == nil {
+					beego.Info(token,receiveMessage.Token)
+					// 需要返回数据
+					sendMessage.Action = "replyMessage"
+					sendMessage.Data.Token = receiveMessage.Token
+					sendMessage.Data.Message = receiveMessage.Message
+					// 返回数据json 为二进制
+					if 	returnData, err := json.Marshal(sendMessage) ; err == nil {
 						err = nowws.WriteMessage(mt, returnData)
 						if err != nil {
 							beego.Info("send " + token + ": error", err)
 							break
+						} else {
+							beego.Info("send " + token + ": success", sendMessage)
 						}
 					}
 				}
