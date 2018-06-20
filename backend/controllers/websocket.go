@@ -47,16 +47,14 @@ func (this *WebsocketController) Get() {
 	defer ws.Close()
 
 	ws.SetCloseHandler(func(code int, text string) error {
-		ip := user[ws]
 		deleteClinet(ws)
 		return nil
 	})
-	ip := models.GetIP(this.Ctx.Request)
-	beego.Info("ip:" ,ip)
 
 	token := models.GetRandomString(8)
 	userLock.Lock()
 	defer userLock.Unlock()
+
 	user[ws] = token
 	for {
 		mt, message, err := ws.ReadMessage()
@@ -80,8 +78,9 @@ func (this *WebsocketController) Get() {
 					if err != nil {
 						beego.Error("write:", err)
 						break
+					} else {
+						beego.Info("建立链接：" + token," data:",sendMessage)
 					}
-					beego.Info("建立链接：" + token)
 				}
 			case "sendMessage":
 				// 将message 发送到各个链接
