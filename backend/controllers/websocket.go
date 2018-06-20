@@ -55,6 +55,8 @@ func (this *WebsocketController) Get() {
 	beego.Info("ip:" ,ip)
 
 	token := models.GetRandomString(8)
+	userLock.Lock()
+	defer userLock.Unlock()
 	user[ws] = token
 	for {
 		mt, message, err := ws.ReadMessage()
