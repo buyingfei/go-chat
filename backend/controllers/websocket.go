@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"encoding/json"
+	"sync"
 )
 
 // Operations about object
@@ -22,8 +23,16 @@ var upgrader = websocket.Upgrader{
 } // use default options
 
 // 定义用户
+var userLock sync.Mutex
 var user = make(map[*websocket.Conn] string)
 
+func deleteClinet(ws *websocket.Conn) {
+	userLock.Lock()
+	defer userLock.Unlock()
+	if _, ok := user[ws]; ok {
+		delete(user, ws)
+	}
+}
 
 // Join method handles WebSocket requests for WebSocketController.
 func (this *WebsocketController) Get() {
@@ -36,6 +45,13 @@ func (this *WebsocketController) Get() {
 	}
 	defer ws.Close()
 
+	ws.SetCloseHandler(func(code int, text string) error {
+		ip := user[ws]
+		beego.Info("出现错误,关闭链接：" + ip)
+		deleteClinet(ws)
+		return nil
+	})
+
 	// 获取ip
 	ip:=this.Ctx.Request.RemoteAddr
 	ip=ip[0:strings.LastIndex(ip, ":")]
@@ -44,12 +60,13 @@ func (this *WebsocketController) Get() {
 	for {
 		mt, message, err := ws.ReadMessage()
 		if err != nil {
-			beego.Info("read ip" + ip +":", err)
+			beego.Info("read ip" + ip +" error:", err)
+			ws.Close()
+			deleteClinet(ws)
 			break
 		}
 		messStruct   := &models.MessageStruct{}
 		if err := json.Unmarshal(message, messStruct); err == nil {
-			//beego.Info(messStruct)
 			switch messStruct.Action {
 			case "open":
 				// 发送数据给前端,将ip 作为token
@@ -80,9 +97,7 @@ func (this *WebsocketController) Get() {
 					}
 				}
 			case "close":
-				beego.Info("关闭链接:", user[ws])
-				// 删除链接
-				delete(user, ws)
+				deleteClinet(ws)
 			}
 
 		}
