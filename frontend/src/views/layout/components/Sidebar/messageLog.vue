@@ -1,7 +1,7 @@
 <template>
   <div class="menu-wrapper">
     <el-row v-for="item in list" :key="item.id">
-      <el-col :span="7" class="user">{{ item.token }}：</el-col>
+      <el-col :span="10" class="user">{{ item.token }}：</el-col>
       <el-col :span="14" style="color: #E6A23C">{{ item.message }}</el-col>
     </el-row>
   </div>
@@ -42,7 +42,7 @@ export default {
 <style>
   .user {
     display: inline-block;
-    max-width: 8em;
+    max-width: 10em;
     /*overflow: hidden;*/
     /*white-space: nowrap;*/
     /*word-wrap: normal;*/

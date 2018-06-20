@@ -29,6 +29,7 @@ func deleteClinet(ws *websocket.Conn) {
 	userLock.Lock()
 	defer userLock.Unlock()
 	if _, ok := user[ws]; ok {
+		beego.Info("关闭链接：",user[ws])
 		delete(user, ws)
 	}
 }
@@ -47,12 +48,13 @@ func (this *WebsocketController) Get() {
 
 	ws.SetCloseHandler(func(code int, text string) error {
 		ip := user[ws]
-		beego.Info("出现错误,关闭链接：" + ip)
 		deleteClinet(ws)
 		return nil
 	})
+	ip := models.GetIP(this.Ctx.Request)
+	beego.Info("ip:" ,ip)
 
-	token := models.GetToken()
+	token := models.GetRandomString(8)
 	user[ws] = token
 	for {
 		mt, message, err := ws.ReadMessage()
