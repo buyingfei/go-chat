@@ -5,7 +5,6 @@ import (
 	"github.com/gorilla/websocket"
 	"go-chat/backend/models"
 	"net/http"
-	"strings"
 	"encoding/json"
 	"sync"
 )
@@ -53,10 +52,7 @@ func (this *WebsocketController) Get() {
 		return nil
 	})
 
-	// 获取ip
-	ip:=this.Ctx.Request.RemoteAddr
-	ip=ip[0:strings.LastIndex(ip, ":")]
-	token := "ip" + ip
+	token := models.GetToken()
 	user[ws] = token
 	for {
 		mt, message, err := ws.ReadMessage()
