@@ -2,7 +2,7 @@
 golang + beego + vue 直播聊天互动
 
 ###安装要求
-1. 安装beego 和 gorilla/websocket
+1. 安装beego
 2. npm 版本大于3.0.0，node 版本大于4.0.0
 
 
