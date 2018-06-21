@@ -36,7 +36,7 @@ export default {
           'action': 'heart_beat'
         }
         this.sendWebSocketData(data)
-      }, 20000)
+      }, 30000)
     },
     sendWebSocketData(data) {
       if (!this.wenzi_message_websocket || this.wenzi_message_websocket.readyState === 3) {

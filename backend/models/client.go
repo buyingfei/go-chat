@@ -47,6 +47,10 @@ func (c *Client) ReadPump() {
 	}
 }
 
+func SendData()  {
+
+}
+
 // writePump pumps messages from the Hub to the websocket Connection.
 //
 // A goroutine running writePump is started for each Connection. The
@@ -66,10 +70,6 @@ func (c *Client) WritePump() {
 				return
 			}
 
-			w, err := c.Conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
 			token := GetRandomString(10)
 			receiveMessage   := &ReceiveMessage{}
 			sendMessage   := &SendMessage{}
@@ -79,58 +79,59 @@ func (c *Client) WritePump() {
 				switch receiveMessage.Action {
 				case "open":
 					// 需要返回数据
-					sendMessage.Data.Token = token
-					sendMessage.Action = receiveMessage.Action
-					// 返回数据json 为二进制
-					if 	returnData, err := json.Marshal(sendMessage) ; err == nil {
-						_, err = w.Write(returnData)
-						if err != nil {
-							beego.Error("write:", err)
-							break
-						} else {
-							beego.Info("建立链接：" + token)
-						}
+					if receiveMessage.Token != "" {
+						sendMessage.Data.Token = receiveMessage.Token
+					} else {
+						sendMessage.Data.Token = token
 					}
+					sendMessage.Action = receiveMessage.Action
+					beego.Info("建立链接：" + token)
 
 				case "sendMessage":
-					// 需要返回数据
 					sendMessage.Action = "replyMessage"
 					sendMessage.Data.Token = receiveMessage.Token
 					sendMessage.Data.Message = receiveMessage.Message
-					// 返回数据json 为二进制
-					if 	returnData, err := json.Marshal(sendMessage) ; err == nil {
-						_, err = w.Write(returnData)
-						if err != nil {
-							beego.Info("send to " + token + ": error", err)
-							break
-						} else {
-							beego.Info("send to " + token + ": success", sendMessage)
-						}
-					}
+					beego.Info("send to " + sendMessage.Data.Token + ":", sendMessage)
+
+				// 返回心跳
 				case "heart_beat":
-					// 需要返回数据
-					sendMessage.Action = "heart_beat"
-					sendMessage.Data.Token = receiveMessage.Token
-					sendMessage.Data.Message = receiveMessage.Message
-					// 返回数据json 为二进制
-					if 	returnData, err := json.Marshal(sendMessage) ; err == nil {
-						_, err = w.Write(returnData)
-						if err != nil {
-							beego.Info("send to " + token + ": error", err)
-							break
-						} else {
-							beego.Info("send to " + token + ": success", sendMessage)
-						}
-					}
+					//sendMessage.Action = "heart_beat"
+					//sendMessage.Data.Token = receiveMessage.Token
+					//sendMessage.Data.Message = receiveMessage.Message
+					//beego.Info("send to " + sendMessage.Data.Token + " heart_beat: ", sendMessage)
+					break
 				// 关闭
 				case "close":
 					c.Hub.UnRegister <- c
+					beego.Info("close connection : " + sendMessage.Data.Token)
+				}
+
+				// 返回数据json 为二进制,对心跳不处理
+				if receiveMessage.Action != "heart_beat" {
+					// 建立返回对象
+					w, err := c.Conn.NextWriter(websocket.TextMessage)
+					if err != nil {
+						return
+					}
+
+					if 	returnData, err := json.Marshal(sendMessage) ; err == nil {
+						// 返回数据
+						_, err = w.Write(returnData)
+						beego.Info("send to "+ sendMessage.Data.Token +" : ", sendMessage)
+						if err != nil {
+							beego.Error("send to "+ sendMessage.Data.Token +" error: ", err)
+							break
+						}
+					}
+
+					// 关闭写对象
+					if err := w.Close(); err != nil {
+						return
+					}
 				}
 			}
 
-			if err := w.Close(); err != nil {
-				return
-			}
+
 		}
 	}
 }
