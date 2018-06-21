@@ -28,11 +28,7 @@ func (this *WebsocketController) Get() {
 	go Hub.Run()
 	conn, err := upgrader.Upgrade(this.Ctx.ResponseWriter, this.Ctx.Request, nil)
 
-	// 握手失败
-	if _, ok := err.(websocket.HandshakeError); ok {
-		http.Error(this.Ctx.ResponseWriter, "Not a websocket handshake", 400)
-		return
-	} else if err != nil {
+	if err != nil {
 		beego.Error("Cannot setup WebSocket connection:", err)
 		return
 	}
