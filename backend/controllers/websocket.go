@@ -1,12 +1,10 @@
 package controllers
 
 import (
-	"github.com/astaxie/beego"
-	"github.com/gorilla/websocket"
+	"gitHub.com/astaxie/beego"
+	"gitHub.com/gorilla/websocket"
 	"go-chat/backend/models"
 	"net/http"
-	"encoding/json"
-	"sync"
 )
 
 // Operations about object
@@ -15,108 +13,33 @@ type WebsocketController struct {
 }
 
 var upgrader = websocket.Upgrader{
-	// 允许跨域
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
 } // use default options
 
-// 定义用户
-var userLock sync.Mutex
-var user = make(map[*websocket.Conn] string)
+//web  全局变量
+var Hub = models.NewHub()
 
-func deleteClinet(ws *websocket.Conn) {
-	userLock.Lock()
-	defer userLock.Unlock()
-	if _, ok := user[ws]; ok {
-		beego.Info("关闭链接：",user[ws])
-		delete(user, ws)
-	}
-}
-
-
-// Join method handles WebSocket requests for WebSocketController.
+// 方法为所在请求变量
 func (this *WebsocketController) Get() {
+	go Hub.Run()
+	conn, err := upgrader.Upgrade(this.Ctx.ResponseWriter, this.Ctx.Request, nil)
 
-	// 建立socket 链接
-	ws, err := upgrader.Upgrade(this.Ctx.ResponseWriter, this.Ctx.Request, nil)
-	if err != nil {
+	// 握手失败
+	if _, ok := err.(websocket.HandshakeError); ok {
+		http.Error(this.Ctx.ResponseWriter, "Not a websocket handshake", 400)
+		return
+	} else if err != nil {
 		beego.Error("Cannot setup WebSocket connection:", err)
 		return
 	}
-	defer ws.Close()
+	client := &models.Client{Hub: Hub, Conn: conn, Send: make(chan []byte, models.MaxMessageSize)}
+	client.Hub.Register <- client
 
-	// 关闭链接处理
-	ws.SetCloseHandler(func(code int, text string) error {
-		deleteClinet(ws)
-		return nil
-	})
 
-	token := models.GetRandomString(8)
-	userLock.Lock()
-	defer userLock.Unlock()
-	user[ws] = token
-
-	for {
-		// 读消息
-		mt, message, err := ws.ReadMessage()
-		if err != nil {
-			// 读失败关闭链接，删除map对象
-			beego.Info("read " + token +" error:", err)
-			deleteClinet(ws)
-			ws.Close()
-			break
-		}
-
-		receiveMessage   := &models.ReceiveMessage{}
-		sendMessage   := &models.SendMessage{}
-
-		// 解析读
-		if err := json.Unmarshal(message, receiveMessage); err == nil {
-			switch receiveMessage.Action {
-			case "open":
-				// 需要返回数据
-				sendMessage.Data.Token = token
-				sendMessage.Action = receiveMessage.Action
-				// 返回数据json 为二进制
-				if 	returnData, err := json.Marshal(sendMessage) ; err == nil {
-					err = ws.WriteMessage(mt, returnData)
-					if err != nil {
-						beego.Error("write:", err)
-						break
-					} else {
-						beego.Info("建立链接：" + token," data:",sendMessage)
-					}
-				}
-
-			case "sendMessage":
-				// 将message 发送到各个链接
-				for nowws,token := range user {
-					if token == receiveMessage.Token {
-						continue
-					}
-					beego.Info(token,receiveMessage.Token)
-					// 需要返回数据
-					sendMessage.Action = "replyMessage"
-					sendMessage.Data.Token = receiveMessage.Token
-					sendMessage.Data.Message = receiveMessage.Message
-					// 返回数据json 为二进制
-					if 	returnData, err := json.Marshal(sendMessage) ; err == nil {
-						err = nowws.WriteMessage(mt, returnData)
-						if err != nil {
-							beego.Info("send " + token + ": error", err)
-							break
-						} else {
-							beego.Info("send " + token + ": success", sendMessage)
-						}
-					}
-				}
-
-			case "close":
-				deleteClinet(ws)
-			}
-
-		}
-
-	}
+	go client.WritePump()
+	go client.ReadPump()
 }

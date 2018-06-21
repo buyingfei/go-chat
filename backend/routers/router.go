@@ -15,4 +15,5 @@ import (
 
 func init() {
 	beego.Router("/pushwenziwebsocket", &controllers.WebsocketController{})
+	//beego.Router("/pushwenziwebsocket", &controllers.WebsocketController{})
 }
