@@ -21,6 +21,7 @@ export default {
   created() {
     this.connect()
     this.registerEvent()
+    this.heartBeat()
   },
 
   destroyed() {
@@ -28,6 +29,15 @@ export default {
   },
 
   methods: {
+    heartBeat() {
+      //  心跳
+      setInterval(() => {
+        var data = {
+          'action': 'heart_beat'
+        }
+        this.sendWebSocketData(data)
+      }, 20000)
+    },
     sendWebSocketData(data) {
       if (!this.wenzi_message_websocket || this.wenzi_message_websocket.readyState === 3) {
         return

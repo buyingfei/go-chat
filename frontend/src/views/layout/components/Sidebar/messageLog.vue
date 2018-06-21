@@ -28,7 +28,6 @@ export default {
     registerEvent() {
       EventBus.$on('add-message', (data) => {
         data.id = Math.floor(Math.random() * 10000)
-        console.log(data)
         this.list.push(data)
       })
     },

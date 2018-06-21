@@ -43,7 +43,7 @@ export default {
   methods: {
     onSubmit() {
       EventBus.$emit('send-message', { action: 'sendMessage', 'token': this.$store.getters.token, message: this.mess })
-      EventBus.$emit('add-message', { token: this.$store.getters.token, message: this.mess })
+      //      EventBus.$emit('add-message', { token: this.$store.getters.token, message: this.mess })
       this.mess = ''
     }
   },

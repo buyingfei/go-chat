@@ -88,7 +88,7 @@ func (c *Client) WritePump() {
 							beego.Error("write:", err)
 							break
 						} else {
-							beego.Info("建立链接：" + token," data:",sendMessage)
+							beego.Info("建立链接：" + token)
 						}
 					}
 
@@ -101,10 +101,25 @@ func (c *Client) WritePump() {
 					if 	returnData, err := json.Marshal(sendMessage) ; err == nil {
 						_, err = w.Write(returnData)
 						if err != nil {
-							beego.Info("send " + token + ": error", err)
+							beego.Info("send to " + token + ": error", err)
 							break
 						} else {
-							beego.Info("send " + token + ": success", sendMessage)
+							beego.Info("send to " + token + ": success", sendMessage)
+						}
+					}
+				case "heart_beat":
+					// 需要返回数据
+					sendMessage.Action = "heart_beat"
+					sendMessage.Data.Token = receiveMessage.Token
+					sendMessage.Data.Message = receiveMessage.Message
+					// 返回数据json 为二进制
+					if 	returnData, err := json.Marshal(sendMessage) ; err == nil {
+						_, err = w.Write(returnData)
+						if err != nil {
+							beego.Info("send to " + token + ": error", err)
+							break
+						} else {
+							beego.Info("send to " + token + ": success", sendMessage)
 						}
 					}
 				// 关闭
