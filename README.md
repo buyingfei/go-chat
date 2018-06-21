@@ -10,7 +10,8 @@ golang + beego + vue 直播聊天互动
 1. 实现直播用户发言互动
 2. 使用nginx 代理转发websocket 请求，主要使用nginx 负载均衡，部署到多台服务器
 3. 采用前后端分离方式进行开发，加深对项目合作过程中，对项目理解
-4. 程序安装及相关配置，请分别参考backend、frontend 下read.me
+4. websocket 断线重连及心跳检测
+5. 程序安装及相关配置，请分别参考backend、frontend 下read.me
 
 * backend 是后端beego 项目
 * frontend 是前端vue 项目
