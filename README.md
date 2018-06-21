@@ -21,8 +21,8 @@ golang + beego + vue 直播聊天互动
 * 前端采用vue.js + vuex + vue router + ele UI + webpack 实现 
 
 #### 参考链接
-*  [golang websocket example](:https://github.com/gorilla/websocket/tree/master/examples/chat)
-* [nginx 代理转发websocket](:https://wiki.swoole.com/wiki/page/326.html)
+*  [golang websocket example](https://github.com/gorilla/websocket/tree/master/examples/chat)
+* [nginx 代理转发websocket](https://wiki.swoole.com/wiki/page/326.html)
 
 #### 后端设计结构
 
